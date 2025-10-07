@@ -30,6 +30,7 @@ async function bootstrap() {
   const salt = await bcrypt.genSalt();
   const hashedPassword = await bcrypt.hash('password', salt);
 
+  // Create Super Admin
   let superAdmin = await userRepository.findOneBy({
     email: 'superadmin@example.com',
   });
@@ -43,99 +44,112 @@ async function bootstrap() {
     });
   }
 
-  const organization = await organizationRepository.save({
-    name: 'Default Organization',
+  // Create Organizations
+  const org1 = await organizationRepository.save({
+    name: 'Tech Solutions Inc.',
     ownerId: superAdmin.id,
   });
 
-  const adminRole = await roleRepository.save({
-    name: 'Admin',
-    organizationId: organization.id,
+  const org2 = await organizationRepository.save({
+    name: 'Global Retail Co.',
+    ownerId: superAdmin.id,
   });
 
-  await accessRightRepository.save([
-    {
-      roleId: adminRole.id,
-      module: AccessModule.INVENTORY,
-      canRead: true,
-      canWrite: true,
-      canDelete: true,
-    },
-    {
-      roleId: adminRole.id,
-      module: AccessModule.SALES,
-      canRead: true,
-      canWrite: true,
-      canDelete: true,
-    },
-    {
-      roleId: adminRole.id,
-      module: AccessModule.USERS,
-      canRead: true,
-      canWrite: true,
-      canDelete: true,
-    },
-    {
-      roleId: adminRole.id,
-      module: AccessModule.REPORTS,
-      canRead: true,
-      canWrite: true,
-      canDelete: true,
-    },
-    {
-      roleId: adminRole.id,
-      module: AccessModule.SETTINGS,
-      canRead: true,
-      canWrite: true,
-      canDelete: true,
-    },
-  ]);
+  // Create Stores
+  const store1Org1 = await storeRepository.save({
+    name: 'Main Branch',
+    organizationId: org1.id,
+    location: 'New York',
+  });
 
-  const managerRole = await roleRepository.save({
+  const store2Org1 = await storeRepository.save({
+    name: 'West Coast Office',
+    organizationId: org1.id,
+    location: 'San Francisco',
+  });
+
+  const store1Org2 = await storeRepository.save({
+    name: 'Downtown Store',
+    organizationId: org2.id,
+    location: 'London',
+  });
+
+  // Create Roles
+  const adminRoleOrg1 = await roleRepository.save({
+    name: 'Administrator',
+    organizationId: org1.id,
+  });
+
+  const managerRoleOrg1 = await roleRepository.save({
     name: 'Manager',
-    organizationId: organization.id,
+    organizationId: org1.id,
   });
 
+  const staffRoleOrg1 = await roleRepository.save({
+    name: 'Staff',
+    organizationId: org1.id,
+  });
+
+  const managerRoleOrg2 = await roleRepository.save({
+    name: 'General Manager',
+    organizationId: org2.id,
+  });
+
+  // Assign Access Rights
   await accessRightRepository.save([
-    {
-      roleId: managerRole.id,
-      module: AccessModule.INVENTORY,
-      canRead: true,
-      canWrite: true,
-      canDelete: false,
-    },
-    {
-      roleId: managerRole.id,
-      module: AccessModule.SALES,
-      canRead: true,
-      canWrite: true,
-      canDelete: false,
-    },
+    // Admin Role - Full Access
+    { roleId: adminRoleOrg1.id, module: AccessModule.INVENTORY, canRead: true, canWrite: true, canDelete: true },
+    { roleId: adminRoleOrg1.id, module: AccessModule.SALES, canRead: true, canWrite: true, canDelete: true },
+    { roleId: adminRoleOrg1.id, module: AccessModule.USERS, canRead: true, canWrite: true, canDelete: true },
+    { roleId: adminRoleOrg1.id, module: AccessModule.REPORTS, canRead: true, canWrite: true, canDelete: true },
+    { roleId: adminRoleOrg1.id, module: AccessModule.SETTINGS, canRead: true, canWrite: true, canDelete: true },
+
+    // Manager Role - Limited Access
+    { roleId: managerRoleOrg1.id, module: AccessModule.INVENTORY, canRead: true, canWrite: true, canDelete: false },
+    { roleId: managerRoleOrg1.id, module: AccessModule.SALES, canRead: true, canWrite: true, canDelete: false },
+    { roleId: managerRoleOrg1.id, module: AccessModule.REPORTS, canRead: true, canWrite: false, canDelete: false },
+
+    // Staff Role - Read-Only
+    { roleId: staffRoleOrg1.id, module: AccessModule.INVENTORY, canRead: true, canWrite: false, canDelete: false },
+    { roleId: staffRoleOrg1.id, module: AccessModule.SALES, canRead: true, canWrite: false, canDelete: false },
+
+    // Manager Role Org 2
+    { roleId: managerRoleOrg2.id, module: AccessModule.INVENTORY, canRead: true, canWrite: true, canDelete: true },
+    { roleId: managerRoleOrg2.id, module: AccessModule.SALES, canRead: true, canWrite: true, canDelete: true },
   ]);
 
-  const store = await storeRepository.save({
-    name: 'Default Store',
-    organizationId: organization.id,
+  // Create Users
+  const user1 = await userRepository.save({
+    email: 'admin@techsolutions.com',
+    passwordHash: hashedPassword,
+    name: 'Alice Admin',
   });
 
-  let manager = await userRepository.findOneBy({
-    email: 'manager@example.com',
+  const user2 = await userRepository.save({
+    email: 'manager@techsolutions.com',
+    passwordHash: hashedPassword,
+    name: 'Bob Manager',
   });
 
-  if (!manager) {
-    manager = await userRepository.save({
-      email: 'manager@example.com',
-      passwordHash: hashedPassword,
-      name: 'Manager',
-    });
-  }
-
-  await organizationUserRepository.save({
-    organizationId: organization.id,
-    storeId: store.id,
-    userId: manager.id,
-    roleId: managerRole.id,
+  const user3 = await userRepository.save({
+    email: 'staff@techsolutions.com',
+    passwordHash: hashedPassword,
+    name: 'Charlie Staff',
   });
+
+  const user4 = await userRepository.save({
+    email: 'manager@globalretail.com',
+    passwordHash: hashedPassword,
+    name: 'Diana Manager',
+  });
+
+  // Assign Users to Organizations
+  await organizationUserRepository.save([
+    { organizationId: org1.id, storeId: store1Org1.id, userId: user1.id, roleId: adminRoleOrg1.id },
+    { organizationId: org1.id, storeId: store1Org1.id, userId: user2.id, roleId: managerRoleOrg1.id },
+    { organizationId: org1.id, storeId: store2Org1.id, userId: user3.id, roleId: staffRoleOrg1.id },
+    { organizationId: org2.id, storeId: store1Org2.id, userId: user4.id, roleId: managerRoleOrg2.id },
+  ]);
 
   await app.close();
 }
