@@ -1,0 +1,16 @@
+# See .gitignore
+.git
+.gitignore
+.env
+.env.example
+.dockerignore
+node_modules
+dist
+coverage
+test
+README.md
+DOCUMENTATION.md
+PLAN.md
+# Editor files
+.vscode
+.idea
