@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AccessModule } from '../enums/access-module.enum';
+import { AccessModule } from '../../../shared/enums/access-module.enum';
 import { Role } from './role.entity';
 
 @Entity()

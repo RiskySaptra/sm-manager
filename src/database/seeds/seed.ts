@@ -1,15 +1,15 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../app.module';
-import { User } from '../core/entities/user.entity';
+import { AppModule } from '../../app/app.module';
+import { User } from '../../modules/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Role } from '../core/entities/role.entity';
-import { AccessRight } from '../core/entities/access-right.entity';
-import { AccessModule } from '../core/enums/access-module.enum';
-import { Organization } from '../core/entities/organization.entity';
-import { Store } from '../core/entities/store.entity';
-import { OrganizationUser } from '../core/entities/organization-user.entity';
+import { Role } from '../../modules/roles/entities/role.entity';
+import { AccessRight } from '../../modules/roles/entities/access-right.entity';
+import { AccessModule } from '../../shared/enums/access-module.enum';
+import { Organization } from '../../modules/organizations/entities/organization.entity';
+import { Store } from '../../modules/stores/entities/store.entity';
+import { OrganizationUser } from '../../modules/organizations/entities/organization-user.entity';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);

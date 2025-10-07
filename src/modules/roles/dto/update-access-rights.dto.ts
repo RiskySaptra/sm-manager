@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsEnum, IsNotEmpty } from 'class-validator';
-import { AccessModule } from 'src/core/enums/access-module.enum';
+import { AccessModule } from '../../../shared/enums/access-module.enum';
 
 export class UpdateAccessRightsDto {
   @ApiProperty({

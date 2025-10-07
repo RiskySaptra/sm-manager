@@ -7,10 +7,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Organization } from './organization.entity';
-import { OrganizationUser } from './organization-user.entity';
-import { Role } from './role.entity';
-import { Store } from './store.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { OrganizationUser } from '../../organizations/entities/organization-user.entity';
+import { Role } from '../../roles/entities/role.entity';
+import { Store } from '../../stores/entities/store.entity';
 
 @Entity()
 export class User {

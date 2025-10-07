@@ -6,10 +6,10 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AuditAction } from '../enums/audit-action.enum';
-import { Organization } from './organization.entity';
-import { Store } from './store.entity';
-import { User } from './user.entity';
+import { AuditAction } from '../../../shared/enums/audit-action.enum';
+import { Organization } from '../../organizations/entities/organization.entity';
+import { Store } from '../../stores/entities/store.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class AuditLog {

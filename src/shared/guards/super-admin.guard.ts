@@ -1,5 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { User } from 'src/core/entities/user.entity';
+import { User } from '../../modules/users/entities/user.entity';
 import { Observable } from 'rxjs';
 
 @Injectable()

@@ -8,11 +8,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { PlanType } from '../enums/plan-type.enum';
+import { PlanType } from '../../../shared/enums/plan-type.enum';
 import { OrganizationUser } from './organization-user.entity';
-import { Role } from './role.entity';
-import { Store } from './store.entity';
-import { User } from './user.entity';
+import { Role } from '../../roles/entities/role.entity';
+import { Store } from '../../stores/entities/store.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class Organization {

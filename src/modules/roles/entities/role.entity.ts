@@ -8,7 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { AccessRight } from './access-right.entity';
-import { Organization } from './organization.entity';
+import { Organization } from '../../organizations/entities/organization.entity';
 
 @Entity()
 export class Role {

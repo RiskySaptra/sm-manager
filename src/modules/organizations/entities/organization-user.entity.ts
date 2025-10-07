@@ -6,11 +6,11 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserStatus } from '../enums/user-status.enum';
+import { UserStatus } from '../../../shared/enums/user-status.enum';
 import { Organization } from './organization.entity';
-import { Role } from './role.entity';
-import { Store } from './store.entity';
-import { User } from './user.entity';
+import { Role } from '../../roles/entities/role.entity';
+import { Store } from '../../stores/entities/store.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity()
 export class OrganizationUser {
