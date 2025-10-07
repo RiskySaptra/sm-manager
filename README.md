@@ -57,59 +57,36 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
-## Deployment with Docker Compose
+## Running with Docker
 
-To deploy this application using Docker Compose, you can build and run the services defined in the `docker-compose.yml` file.
+This application is configured to run with Docker Compose, connecting to an external PostgreSQL database.
 
 ### Prerequisites
 
 - [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/install/) installed on your machine.
+- A running PostgreSQL database.
 
 ### Setup
 
-1.  **Create a `.env` file**
+1.  **Configure Environment Variables**
 
-    Copy the contents of `.env.example` to a new file named `.env`.
+    Create a `.env` file by copying the example file:
 
     ```bash
     cp .env.example .env
     ```
 
-    Update the environment variables in the `.env` file as needed.
+    Update the `.env` file with your database connection details and set the `PORT` to your desired application port (e.g., `8090`).
 
-2.  **Build and run the services**
+2.  **Build and Run the Application**
 
-    ```bash
-    docker-compose up --build
-    ```
-
-    To run in detached mode, use:
+    Use the following command to build and run the application in detached mode:
 
     ```bash
     docker-compose up --build -d
     ```
 
-The application will be accessible at `http://localhost:3000` (or the port you specified in your `.env` file).
-
-### Local Development with an Existing Database
-
-If you are running a PostgreSQL database locally or have an external database you'd like to connect to, you can use the `docker-compose.local.yml` file.
-
-1.  **Update your `.env` file**
-
-    Ensure your `.env` file has the correct connection details for your existing database. For a local database, `DB_HOST` would typically be `localhost`.
-
-2.  **Build and run the service**
-
-    ```bash
-    docker-compose -f docker-compose.local.yml up --build
-    ```
-
-    To run in detached mode, use:
-
-    ```bash
-    docker-compose -f docker-compose.local.yml up --build -d
-    ```
+    The application will be accessible at `http://localhost:<your_port>`, where `<your_port>` is the port you specified in your `.env` file.
 
 ## Support
 
