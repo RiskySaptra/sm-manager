@@ -1,6 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
   Post,
   UseGuards,
   ValidationPipe,
@@ -8,24 +12,70 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/auth/get-user.decorator';
+import { AccessRight } from 'src/core/entities/access-right.entity';
 import { Role } from 'src/core/entities/role.entity';
 import { User } from 'src/core/entities/user.entity';
+import { SuperAdminGuard } from 'src/core/guards/super-admin.guard';
 import { TenancyGuard } from 'src/core/guards/tenancy.guard';
 import { CreateRoleDto } from './dto/create-role.dto';
+import { UpdateAccessRightsDto } from './dto/update-access-rights.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 import { RolesService } from './roles.service';
 
 @ApiTags('Roles')
 @Controller('roles')
-@UseGuards(AuthGuard(), TenancyGuard)
+@UseGuards(AuthGuard())
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}
 
   @Post()
+  @UseGuards(TenancyGuard)
   @ApiBearerAuth()
   create(
     @Body(ValidationPipe) createRoleDto: CreateRoleDto,
     @GetUser() user: User,
   ): Promise<Role> {
     return this.rolesService.create(createRoleDto, user.organizationId!);
+  }
+
+  @Get()
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  findAll(): Promise<Role[]> {
+    return this.rolesService.findAll();
+  }
+
+  @Get(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  findOne(@Param('id') id: string): Promise<Role> {
+    return this.rolesService.findOne(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  update(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateRoleDto: UpdateRoleDto,
+  ): Promise<Role> {
+    return this.rolesService.update(id, updateRoleDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  remove(@Param('id') id: string): Promise<void> {
+    return this.rolesService.remove(id);
+  }
+
+  @Post(':id/access-rights')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  updateAccessRights(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateAccessRightsDto: UpdateAccessRightsDto,
+  ): Promise<AccessRight> {
+    return this.rolesService.updateAccessRights(id, updateAccessRightsDto);
   }
 }

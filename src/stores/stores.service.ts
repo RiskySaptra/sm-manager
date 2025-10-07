@@ -22,4 +22,8 @@ export class StoresService {
 
     return this.storeRepository.save(store);
   }
+
+  async findAll(): Promise<Store[]> {
+    return this.storeRepository.find({ relations: ['organization'] });
+  }
 }

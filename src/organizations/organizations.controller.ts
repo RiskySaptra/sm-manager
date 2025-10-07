@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Param,
+  Patch,
   Post,
   UseGuards,
   ValidationPipe,
@@ -12,6 +13,8 @@ import { GetUser } from 'src/auth/get-user.decorator';
 import { OrganizationUser } from 'src/core/entities/organization-user.entity';
 import { Organization } from 'src/core/entities/organization.entity';
 import { User } from 'src/core/entities/user.entity';
+import { SuperAdminGuard } from 'src/core/guards/super-admin.guard';
+import { ChangeOwnerDto } from './dto/change-owner.dto';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { OrganizationsService } from './organizations.service';
@@ -39,5 +42,15 @@ export class OrganizationsController {
     @GetUser() user: User,
   ): Promise<OrganizationUser> {
     return this.organizationsService.inviteUser(id, inviteUserDto, user);
+  }
+
+  @Patch('/:id/owner')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  changeOwner(
+    @Param('id') id: string,
+    @Body(ValidationPipe) changeOwnerDto: ChangeOwnerDto,
+  ): Promise<Organization> {
+    return this.organizationsService.changeOwner(id, changeOwnerDto.ownerId);
   }
 }

@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -6,7 +7,10 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Organization } from './organization.entity';
 import { OrganizationUser } from './organization-user.entity';
+import { Role } from './role.entity';
+import { Store } from './store.entity';
 
 @Entity()
 export class User {
@@ -17,6 +21,7 @@ export class User {
   email: string;
 
   @Column({ type: 'text' })
+  @Exclude({ toPlainOnly: true })
   passwordHash: string;
 
   @Column({ type: 'varchar', length: 100 })
@@ -32,7 +37,10 @@ export class User {
   updatedAt: Date;
 
   @OneToMany(() => OrganizationUser, (organizationUser) => organizationUser.user)
-  organizationUsers: OrganizationUser[];
+  organizationUsers?: OrganizationUser[];
 
   organizationId?: string;
+  organization?: Organization;
+  store?: Store;
+  role?: Role;
 }

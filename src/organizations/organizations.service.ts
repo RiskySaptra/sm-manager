@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -47,10 +48,14 @@ export class OrganizationsService {
       throw new NotFoundException('Organization not found');
     }
 
-    if (organization.ownerId !== user.id) {
+    if (organization.ownerId !== user.id && !user.isSuperAdmin) {
       throw new UnauthorizedException(
         'You are not the owner of this organization',
       );
+    }
+
+    if (!user.isSuperAdmin && !inviteUserDto.storeId) {
+      throw new BadRequestException('Store ID is required for non-super admins');
     }
 
     const invitedUser = await this.userRepository.findOneBy({
@@ -65,6 +70,7 @@ export class OrganizationsService {
       organizationId,
       userId: invitedUser.id,
       roleId: inviteUserDto.roleId,
+      storeId: inviteUserDto.storeId,
     });
 
     return this.organizationUserRepository.save(organizationUser);
@@ -72,5 +78,27 @@ export class OrganizationsService {
 
   async findAll(): Promise<Organization[]> {
     return this.organizationRepository.find();
+  }
+
+  async changeOwner(
+    organizationId: string,
+    ownerId: string,
+  ): Promise<Organization> {
+    const organization = await this.organizationRepository.findOneBy({
+      id: organizationId,
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    const newOwner = await this.userRepository.findOneBy({ id: ownerId });
+
+    if (!newOwner) {
+      throw new NotFoundException('New owner not found');
+    }
+
+    organization.ownerId = ownerId;
+    return this.organizationRepository.save(organization);
   }
 }
