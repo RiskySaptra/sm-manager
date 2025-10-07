@@ -11,6 +11,7 @@ import { User } from 'src/core/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 @Injectable()
 export class OrganizationsService {
@@ -78,6 +79,30 @@ export class OrganizationsService {
 
   async findAll(): Promise<Organization[]> {
     return this.organizationRepository.find();
+  }
+
+  async findOne(id: string): Promise<Organization> {
+    const organization = await this.organizationRepository.findOneBy({ id });
+    if (!organization) {
+      throw new NotFoundException(`Organization with ID "${id}" not found`);
+    }
+    return organization;
+  }
+
+  async update(
+    id: string,
+    updateOrganizationDto: UpdateOrganizationDto,
+  ): Promise<Organization> {
+    const organization = await this.findOne(id);
+    Object.assign(organization, updateOrganizationDto);
+    return this.organizationRepository.save(organization);
+  }
+
+  async remove(id: string): Promise<void> {
+    const result = await this.organizationRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Organization with ID "${id}" not found`);
+    }
   }
 
   async changeOwner(

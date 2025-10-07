@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   Param,
   Patch,
   Post,
@@ -8,7 +10,12 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { OrganizationUser } from 'src/core/entities/organization-user.entity';
 import { Organization } from 'src/core/entities/organization.entity';
@@ -17,6 +24,7 @@ import { SuperAdminGuard } from 'src/core/guards/super-admin.guard';
 import { ChangeOwnerDto } from './dto/change-owner.dto';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { OrganizationsService } from './organizations.service';
 
 @ApiTags('Organizations')
@@ -27,6 +35,12 @@ export class OrganizationsController {
 
   @Post()
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new organization' })
+  @ApiResponse({
+    status: 201,
+    description: 'The organization has been successfully created.',
+    type: Organization,
+  })
   create(
     @Body(ValidationPipe) createOrganizationDto: CreateOrganizationDto,
     @GetUser() user: User,
@@ -36,6 +50,12 @@ export class OrganizationsController {
 
   @Post('/:id/users')
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Invite a user to an organization' })
+  @ApiResponse({
+    status: 201,
+    description: 'The user has been successfully invited.',
+    type: OrganizationUser,
+  })
   inviteUser(
     @Param('id') id: string,
     @Body(ValidationPipe) inviteUserDto: InviteUserDto,
@@ -47,10 +67,70 @@ export class OrganizationsController {
   @Patch('/:id/owner')
   @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change the owner of an organization' })
+  @ApiResponse({
+    status: 200,
+    description: 'The organization owner has been successfully changed.',
+    type: Organization,
+  })
   changeOwner(
     @Param('id') id: string,
     @Body(ValidationPipe) changeOwnerDto: ChangeOwnerDto,
   ): Promise<Organization> {
     return this.organizationsService.changeOwner(id, changeOwnerDto.ownerId);
+  }
+
+  @Get()
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all organizations' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all organizations.',
+    type: [Organization],
+  })
+  findAll(): Promise<Organization[]> {
+    return this.organizationsService.findAll();
+  }
+
+  @Get(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get an organization by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the organization.',
+    type: Organization,
+  })
+  findOne(@Param('id') id: string): Promise<Organization> {
+    return this.organizationsService.findOne(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update an organization' })
+  @ApiResponse({
+    status: 200,
+    description: 'The organization has been successfully updated.',
+    type: Organization,
+  })
+  update(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateOrganizationDto: UpdateOrganizationDto,
+  ): Promise<Organization> {
+    return this.organizationsService.update(id, updateOrganizationDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete an organization' })
+  @ApiResponse({
+    status: 200,
+    description: 'The organization has been successfully deleted.',
+  })
+  remove(@Param('id') id: string): Promise<void> {
+    return this.organizationsService.remove(id);
   }
 }

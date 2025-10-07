@@ -1,19 +1,28 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
+  Patch,
   Post,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { Store } from 'src/core/entities/store.entity';
 import { User } from 'src/core/entities/user.entity';
 import { SuperAdminGuard } from 'src/core/guards/super-admin.guard';
 import { TenancyGuard } from 'src/core/guards/tenancy.guard';
 import { CreateStoreDto } from './dto/create-store.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
 import { StoresService } from './stores.service';
 
 @ApiTags('Stores')
@@ -25,6 +34,12 @@ export class StoresController {
   @Post()
   @UseGuards(TenancyGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new store' })
+  @ApiResponse({
+    status: 201,
+    description: 'The store has been successfully created.',
+    type: Store,
+  })
   create(
     @Body(ValidationPipe) createStoreDto: CreateStoreDto,
     @GetUser() user: User,
@@ -35,7 +50,54 @@ export class StoresController {
   @Get()
   @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all stores' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all stores.',
+    type: [Store],
+  })
   findAll(): Promise<Store[]> {
     return this.storesService.findAll();
+  }
+
+  @Get(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a store by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the store.',
+    type: Store,
+  })
+  findOne(@Param('id') id: string): Promise<Store> {
+    return this.storesService.findOne(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a store' })
+  @ApiResponse({
+    status: 200,
+    description: 'The store has been successfully updated.',
+    type: Store,
+  })
+  update(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateStoreDto: UpdateStoreDto,
+  ): Promise<Store> {
+    return this.storesService.update(id, updateStoreDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a store' })
+  @ApiResponse({
+    status: 200,
+    description: 'The store has been successfully deleted.',
+  })
+  remove(@Param('id') id: string): Promise<void> {
+    return this.storesService.remove(id);
   }
 }

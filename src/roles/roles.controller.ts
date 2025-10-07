@@ -10,7 +10,12 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { AccessRight } from 'src/core/entities/access-right.entity';
 import { Role } from 'src/core/entities/role.entity';
@@ -31,6 +36,12 @@ export class RolesController {
   @Post()
   @UseGuards(TenancyGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new role' })
+  @ApiResponse({
+    status: 201,
+    description: 'The role has been successfully created.',
+    type: Role,
+  })
   create(
     @Body(ValidationPipe) createRoleDto: CreateRoleDto,
     @GetUser() user: User,
@@ -41,6 +52,12 @@ export class RolesController {
   @Get()
   @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all roles' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all roles.',
+    type: [Role],
+  })
   findAll(): Promise<Role[]> {
     return this.rolesService.findAll();
   }
@@ -48,6 +65,12 @@ export class RolesController {
   @Get(':id')
   @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a role by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the role.',
+    type: Role,
+  })
   findOne(@Param('id') id: string): Promise<Role> {
     return this.rolesService.findOne(id);
   }
@@ -55,6 +78,12 @@ export class RolesController {
   @Patch(':id')
   @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a role' })
+  @ApiResponse({
+    status: 200,
+    description: 'The role has been successfully updated.',
+    type: Role,
+  })
   update(
     @Param('id') id: string,
     @Body(ValidationPipe) updateRoleDto: UpdateRoleDto,
@@ -65,6 +94,11 @@ export class RolesController {
   @Delete(':id')
   @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a role' })
+  @ApiResponse({
+    status: 200,
+    description: 'The role has been successfully deleted.',
+  })
   remove(@Param('id') id: string): Promise<void> {
     return this.rolesService.remove(id);
   }
@@ -72,6 +106,12 @@ export class RolesController {
   @Post(':id/access-rights')
   @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update the access rights for a role' })
+  @ApiResponse({
+    status: 201,
+    description: 'The access rights have been successfully updated.',
+    type: AccessRight,
+  })
   updateAccessRights(
     @Param('id') id: string,
     @Body(ValidationPipe) updateAccessRightsDto: UpdateAccessRightsDto,
