@@ -56,7 +56,9 @@ export class OrganizationsService {
     }
 
     if (!user.isSuperAdmin && !inviteUserDto.storeId) {
-      throw new BadRequestException('Store ID is required for non-super admins');
+      throw new BadRequestException(
+        'Store ID is required for non-super admins',
+      );
     }
 
     const invitedUser = await this.userRepository.findOneBy({

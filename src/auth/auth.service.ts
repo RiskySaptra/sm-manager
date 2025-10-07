@@ -39,10 +39,10 @@ export class AuthService {
     try {
       await this.userRepository.save(user);
       const payload = { id: user.id };
-      const accessToken = await this.jwtService.sign(payload);
+      const accessToken = this.jwtService.sign(payload);
       return { accessToken };
-    } catch (error) {
-      if (error.code === '23505') {
+    } catch (error: unknown) {
+      if ((error as { code: string }).code === '23505') {
         // duplicate username
         throw new ConflictException('Email already exists');
       } else {
@@ -75,7 +75,7 @@ export class AuthService {
         payload.organizationId = organizationId;
       }
 
-      const accessToken = await this.jwtService.sign(payload);
+      const accessToken = this.jwtService.sign(payload);
       return { accessToken };
     } else {
       throw new UnauthorizedException('Please check your login credentials');

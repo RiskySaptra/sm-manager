@@ -5,7 +5,7 @@ import { AccessModule } from 'src/core/enums/access-module.enum';
 export class UpdateAccessRightsDto {
   @ApiProperty({
     description: 'The module to update',
-    example: AccessModule.INVENTORY,
+    example: 'INVENTORY',
   })
   @IsEnum(AccessModule)
   @IsNotEmpty()

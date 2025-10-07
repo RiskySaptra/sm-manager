@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AccessRight } from 'src/core/entities/access-right.entity';
 import { OrganizationUser } from 'src/core/entities/organization-user.entity';
+import { User } from 'src/core/entities/user.entity';
 import { AccessModule } from 'src/core/enums/access-module.enum';
 import { Repository } from 'typeorm';
 import { PERMISSION_KEY } from './require-permission.decorator';
@@ -26,7 +27,7 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const { user } = context.switchToHttp().getRequest<{ user: User }>();
 
     if (!user || !user.organizationId) {
       return false;

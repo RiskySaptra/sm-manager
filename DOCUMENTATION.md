@@ -94,3 +94,48 @@ Authorization: Bearer <your-jwt>
 -   **Multi-Tenancy**: The application uses a single-database, multi-tenancy approach, with each organization's data isolated by a `organizationId` column. A custom `TenancyGuard` is used to ensure that users can only access data within their own organization.
 -   **Role-Based Access Control (RBAC)**: The application uses a flexible RBAC system that allows for granular control over user permissions. A custom `RolesGuard` is used to protect endpoints based on user roles and permissions.
 -   **Auditing**: The application uses a custom `AuditInterceptor` to automatically log key actions across the application. This provides a comprehensive audit trail for all important events.
+
+## 4. Guards
+
+The application uses a set of custom guards to protect endpoints and enforce authorization rules.
+
+### 4.1. `AuthGuard`
+
+The `AuthGuard` is a standard NestJS guard that uses the `passport-jwt` strategy to protect endpoints. It ensures that only authenticated users can access the endpoint.
+
+**Usage:**
+
+```typescript
+@UseGuards(AuthGuard())
+```
+
+### 4.2. `TenancyGuard`
+
+The `TenancyGuard` ensures that users can only access data within their own organization. It inspects the user's JWT to identify their active `organizationId` and scopes all subsequent data access.
+
+**Usage:**
+
+```typescript
+@UseGuards(AuthGuard(), TenancyGuard)
+```
+
+### 4.3. `RolesGuard`
+
+The `RolesGuard` is used to protect endpoints based on user roles and permissions. It works in conjunction with the `@RequirePermission` decorator to specify the required permissions for a specific endpoint.
+
+**Usage:**
+
+```typescript
+@UseGuards(AuthGuard(), RolesGuard)
+@RequirePermission(AccessModule.INVENTORY, 'read')
+```
+
+### 4.4. `SuperAdminGuard`
+
+The `SuperAdminGuard` restricts access to super admin-only endpoints. It checks if the authenticated user has the `isSuperAdmin` flag set to `true`.
+
+**Usage:**
+
+```typescript
+@UseGuards(AuthGuard(), SuperAdminGuard)
+```

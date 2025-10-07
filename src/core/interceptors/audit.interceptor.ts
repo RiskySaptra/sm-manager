@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuditLogService } from 'src/audit-log/audit-log.service';
+import { User } from 'src/core/entities/user.entity';
 import { AuditAction } from 'src/core/enums/audit-action.enum';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -28,16 +29,20 @@ export class AuditInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const { user, params, body } = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<{
+      user: User;
+      params: { id?: string };
+      body: Record<string, any>;
+    }>();
 
     return next.handle().pipe(
-      tap((data) => {
-        this.auditLogService.create({
-          organizationId: user.organizationId,
-          userId: user.id,
+      tap((data: { id?: string }) => {
+        void this.auditLogService.create({
+          organizationId: request.user.organizationId,
+          userId: request.user.id,
           action: auditAction,
-          targetId: params.id || data.id,
-          changes: body,
+          targetId: request.params.id ?? data?.id,
+          changes: request.body,
         });
       }),
     );

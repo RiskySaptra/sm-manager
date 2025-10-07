@@ -18,7 +18,7 @@ export class StoresService {
   ): Promise<Store> {
     const store = this.storeRepository.create({
       ...createStoreDto,
-      organizationId,
+      organizationId: createStoreDto.organizationId ?? organizationId,
     });
 
     return this.storeRepository.save(store);

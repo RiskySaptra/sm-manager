@@ -36,7 +36,10 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @OneToMany(() => OrganizationUser, (organizationUser) => organizationUser.user)
+  @OneToMany(
+    () => OrganizationUser,
+    (organizationUser) => organizationUser.user,
+  )
   organizationUsers?: OrganizationUser[];
 
   organizationId?: string;

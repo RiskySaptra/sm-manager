@@ -11,7 +11,7 @@ import {
 export class AuthCredentialsDto {
   @ApiProperty({
     description: 'The email of the user',
-    example: 'test@example.com',
+    example: 'johndoe@example.com',
   })
   @IsEmail()
   email: string;
@@ -36,7 +36,7 @@ export class AuthCredentialsDto {
 
   @ApiProperty({
     description: 'The ID of the organization to log into',
-    example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    example: '00000000-0000-0000-0000-000000000001',
     required: false,
   })
   @IsOptional()

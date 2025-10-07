@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateStoreDto {
   @ApiProperty({
@@ -27,4 +27,13 @@ export class CreateStoreDto {
   @IsOptional()
   @IsString()
   timezone?: string;
+
+  @ApiProperty({
+    description: 'The ID of the organization to create the store in',
+    example: '00000000-0000-0000-0000-000000000001',
+    required: false,
+  })
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
 }

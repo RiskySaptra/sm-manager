@@ -20,7 +20,6 @@ import { GetUser } from 'src/auth/get-user.decorator';
 import { Store } from 'src/core/entities/store.entity';
 import { User } from 'src/core/entities/user.entity';
 import { SuperAdminGuard } from 'src/core/guards/super-admin.guard';
-import { TenancyGuard } from 'src/core/guards/tenancy.guard';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { StoresService } from './stores.service';
@@ -32,7 +31,6 @@ export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
   @Post()
-  @UseGuards(TenancyGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new store' })
   @ApiResponse({
