@@ -4,59 +4,42 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { AuditLogService } from 'src/audit-log/audit-log.service';
+import { AuditAction } from 'src/core/enums/audit-action.enum';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { AuditLogService } from 'src/audit-log/audit-log.service';
-import { AuditAction } from '../enums/audit-action.enum';
+import { AUDIT_KEY } from './audit.decorator';
 
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
-  constructor(private readonly auditLogService: AuditLogService) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly auditLogService: AuditLogService,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
-    const { user, method, url, body, params } = request;
+    const auditAction = this.reflector.getAllAndOverride<AuditAction>(
+      AUDIT_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (!auditAction) {
+      return next.handle();
+    }
+
+    const { user, params, body } = context.switchToHttp().getRequest();
 
     return next.handle().pipe(
-      tap(async (data) => {
-        const action = this.getAction(method);
-        if (action) {
-          await this.auditLogService.create({
-            userId: user.id,
-            organizationId: params.organizationId ?? body.organizationId,
-            storeId: params.storeId ?? body.storeId,
-            action,
-            targetTable: this.getTargetTable(url),
-            targetId: params.id ?? data.id,
-            description: this.getDescription(method, url),
-            ipAddress: request.ip,
-            userAgent: request.headers['user-agent'],
-          });
-        }
+      tap((data) => {
+        this.auditLogService.create({
+          organizationId: user.organizationId,
+          userId: user.id,
+          action: auditAction,
+          targetId: params.id || data.id,
+          changes: body,
+        });
       }),
     );
-  }
-
-  private getAction(method: string): AuditAction | null {
-    switch (method) {
-      case 'POST':
-        return AuditAction.CREATE;
-      case 'PUT':
-      case 'PATCH':
-        return AuditAction.UPDATE;
-      case 'DELETE':
-        return AuditAction.DELETE;
-      default:
-        return null;
-    }
-  }
-
-  private getTargetTable(url: string): string {
-    const parts = url.split('/').filter(Boolean);
-    return parts[1] ?? 'unknown';
-  }
-
-  private getDescription(method: string, url: string): string {
-    return `${method} request to ${url}`;
   }
 }

@@ -1,16 +1,16 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../entities/user.entity';
+import { AccessRight } from 'src/core/entities/access-right.entity';
+import { OrganizationUser } from 'src/core/entities/organization-user.entity';
+import { AccessModule } from 'src/core/enums/access-module.enum';
 import { Repository } from 'typeorm';
-import { OrganizationUser } from '../entities/organization-user.entity';
-import { AccessRight } from '../entities/access-right.entity';
-import { AccessModule } from '../enums/access-module.enum';
+import { PERMISSION_KEY } from './require-permission.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
+    private reflector: Reflector,
     @InjectRepository(OrganizationUser)
     private readonly organizationUserRepository: Repository<OrganizationUser>,
     @InjectRepository(AccessRight)
@@ -18,27 +18,24 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermissions = this.reflector.get<
-      { module: AccessModule; permission: 'canRead' | 'canWrite' | 'canDelete' }[]
-    >('permissions', context.getHandler());
+    const requiredPermission = this.reflector.getAllAndOverride<
+      { module: AccessModule; action: 'read' | 'write' } | undefined
+    >(PERMISSION_KEY, [context.getHandler(), context.getClass()]);
 
-    if (!requiredPermissions) {
+    if (!requiredPermission) {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const user: User = request.user;
-    const organizationId =
-      request.params.organizationId ?? request.body.organizationId;
+    const { user } = context.switchToHttp().getRequest();
 
-    if (!organizationId) {
+    if (!user || !user.organizationId) {
       return false;
     }
 
     const organizationUser = await this.organizationUserRepository.findOne({
       where: {
         userId: user.id,
-        organizationId,
+        organizationId: user.organizationId,
       },
     });
 
@@ -46,17 +43,19 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    const accessRights = await this.accessRightRepository.find({
+    const accessRight = await this.accessRightRepository.findOne({
       where: {
         roleId: organizationUser.roleId,
+        module: requiredPermission.module,
       },
     });
 
-    return requiredPermissions.every((requiredPermission) => {
-      const accessRight = accessRights.find(
-        (ar) => ar.module === requiredPermission.module,
-      );
-      return accessRight && accessRight[requiredPermission.permission];
-    });
+    if (!accessRight) {
+      return false;
+    }
+
+    return accessRight[
+      requiredPermission.action === 'read' ? 'canRead' : 'canWrite'
+    ];
   }
 }

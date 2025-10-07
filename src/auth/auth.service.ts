@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { OrganizationUser } from 'src/core/entities/organization-user.entity';
 import { User } from 'src/core/entities/user.entity';
 import { Repository } from 'typeorm';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
@@ -16,6 +17,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(OrganizationUser)
+    private readonly organizationUserRepository: Repository<OrganizationUser>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -51,11 +54,27 @@ export class AuthService {
   async login(
     authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ accessToken: string }> {
-    const { email, password } = authCredentialsDto;
+    const { email, password, organizationId } = authCredentialsDto;
     const user = await this.userRepository.findOneBy({ email });
 
     if (user && (await bcrypt.compare(password, user.passwordHash))) {
-      const payload = { id: user.id };
+      const payload: { id: string; organizationId?: string } = { id: user.id };
+
+      if (organizationId) {
+        const organizationUser =
+          await this.organizationUserRepository.findOneBy({
+            userId: user.id,
+            organizationId,
+          });
+
+        if (!organizationUser) {
+          throw new UnauthorizedException(
+            'You are not a member of this organization',
+          );
+        }
+        payload.organizationId = organizationId;
+      }
+
       const accessToken = await this.jwtService.sign(payload);
       return { accessToken };
     } else {

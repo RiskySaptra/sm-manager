@@ -69,4 +69,8 @@ export class OrganizationsService {
 
     return this.organizationUserRepository.save(organizationUser);
   }
+
+  async findAll(): Promise<Organization[]> {
+    return this.organizationRepository.find();
+  }
 }

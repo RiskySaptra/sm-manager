@@ -60,4 +60,7 @@ export class AuditLog {
 
   @CreateDateColumn()
   timestamp: Date;
+
+  @Column({ type: 'jsonb', nullable: true })
+  changes: Record<string, any>;
 }

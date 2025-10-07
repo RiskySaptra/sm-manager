@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitialSchema1759844406205 implements MigrationInterface {
-    name = 'InitialSchema1759844406205'
+export class InitialSchema1759852533826 implements MigrationInterface {
+    name = 'InitialSchema1759852533826'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TYPE "public"."access_right_module_enum" AS ENUM('INVENTORY', 'SALES', 'USERS', 'REPORTS', 'SETTINGS')`);
@@ -14,7 +14,7 @@ export class InitialSchema1759844406205 implements MigrationInterface {
         await queryRunner.query(`CREATE TABLE "organization_user" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "organizationId" uuid NOT NULL, "storeId" uuid NOT NULL, "userId" uuid NOT NULL, "roleId" uuid NOT NULL, "status" "public"."organization_user_status_enum" NOT NULL DEFAULT 'ACTIVE', "lastLogin" TIMESTAMP, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_b93269ca4d9016837d22ab6e1e0" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TABLE "user" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "email" character varying(255) NOT NULL, "passwordHash" text NOT NULL, "name" character varying(100) NOT NULL, "isSuperAdmin" boolean NOT NULL DEFAULT false, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22" UNIQUE ("email"), CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE TYPE "public"."audit_log_action_enum" AS ENUM('CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT', 'ASSIGN_ROLE', 'CHANGE_PLAN')`);
-        await queryRunner.query(`CREATE TABLE "audit_log" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "organizationId" uuid NOT NULL, "storeId" uuid NOT NULL, "userId" uuid NOT NULL, "action" "public"."audit_log_action_enum" NOT NULL, "targetTable" character varying(100) NOT NULL, "targetId" character varying(100), "description" text, "ipAddress" character varying(50), "userAgent" text, "timestamp" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_07fefa57f7f5ab8fc3f52b3ed0b" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "audit_log" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "organizationId" uuid NOT NULL, "storeId" uuid NOT NULL, "userId" uuid NOT NULL, "action" "public"."audit_log_action_enum" NOT NULL, "targetTable" character varying(100) NOT NULL, "targetId" character varying(100), "description" text, "ipAddress" character varying(50), "userAgent" text, "timestamp" TIMESTAMP NOT NULL DEFAULT now(), "changes" jsonb, CONSTRAINT "PK_07fefa57f7f5ab8fc3f52b3ed0b" PRIMARY KEY ("id"))`);
         await queryRunner.query(`ALTER TABLE "access_right" ADD CONSTRAINT "FK_b6a1db3afb2c7838e756f114f49" FOREIGN KEY ("roleId") REFERENCES "role"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "role" ADD CONSTRAINT "FK_2bcd50772082305f3bcee6b6da4" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "store" ADD CONSTRAINT "FK_131cfaf1fa490aa45d17ea9d0f6" FOREIGN KEY ("organizationId") REFERENCES "organization"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);

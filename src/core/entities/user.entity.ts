@@ -33,4 +33,6 @@ export class User {
 
   @OneToMany(() => OrganizationUser, (organizationUser) => organizationUser.user)
   organizationUsers: OrganizationUser[];
+
+  organizationId?: string;
 }

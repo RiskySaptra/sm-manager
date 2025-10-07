@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   MinLength,
 } from 'class-validator';
 
@@ -32,4 +33,13 @@ export class AuthCredentialsDto {
   @IsString()
   @IsNotEmpty()
   name?: string;
+
+  @ApiProperty({
+    description: 'The ID of the organization to log into',
+    example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    required: false,
+  })
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
 }
