@@ -25,7 +25,7 @@ export class AuthService {
   async register(
     authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ accessToken: string }> {
-    const { email, password, name } = authCredentialsDto;
+    const { email, password } = authCredentialsDto;
 
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -33,7 +33,6 @@ export class AuthService {
     const user = this.userRepository.create({
       email,
       passwordHash: hashedPassword,
-      name,
     });
 
     try {
@@ -54,26 +53,11 @@ export class AuthService {
   async login(
     authCredentialsDto: AuthCredentialsDto,
   ): Promise<{ accessToken: string }> {
-    const { email, password, organizationId } = authCredentialsDto;
+    const { email, password } = authCredentialsDto;
     const user = await this.userRepository.findOneBy({ email });
 
     if (user && (await bcrypt.compare(password, user.passwordHash))) {
-      const payload: { id: string; organizationId?: string } = { id: user.id };
-
-      if (organizationId) {
-        const organizationUser =
-          await this.organizationUserRepository.findOneBy({
-            userId: user.id,
-            organizationId,
-          });
-
-        if (!organizationUser) {
-          throw new UnauthorizedException(
-            'You are not a member of this organization',
-          );
-        }
-        payload.organizationId = organizationId;
-      }
+      const payload: { id: string } = { id: user.id };
 
       const accessToken = this.jwtService.sign(payload);
       return { accessToken };
