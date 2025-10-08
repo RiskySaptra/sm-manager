@@ -6,8 +6,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserStatus } from '../../../shared/enums/user-status.enum';
 import { Organization } from './organization.entity';
+import { UserStatus } from '../../master-data/entities/user-status.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Store } from '../../stores/entities/store.entity';
 import { User } from '../../users/entities/user.entity';
@@ -48,11 +48,11 @@ export class OrganizationUser {
   @JoinColumn({ name: 'roleId' })
   role: Role;
 
-  @Column({
-    type: 'enum',
-    enum: UserStatus,
-    default: UserStatus.ACTIVE,
-  })
+  @Column({ type: 'varchar', length: 50, default: 'ACTIVE' })
+  statusId: string;
+
+  @ManyToOne(() => UserStatus)
+  @JoinColumn({ name: 'statusId' })
   status: UserStatus;
 
   @Column({ type: 'timestamp', nullable: true })

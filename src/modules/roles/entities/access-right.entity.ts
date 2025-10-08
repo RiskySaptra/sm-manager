@@ -5,8 +5,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AccessModule } from '../../../shared/enums/access-module.enum';
 import { Role } from './role.entity';
+import { AccessModule } from '../../master-data/entities/access-module.entity';
 
 @Entity()
 export class AccessRight {
@@ -20,10 +20,11 @@ export class AccessRight {
   @JoinColumn({ name: 'roleId' })
   role: Role;
 
-  @Column({
-    type: 'enum',
-    enum: AccessModule,
-  })
+  @Column({ type: 'varchar', length: 50 })
+  moduleId: string;
+
+  @ManyToOne(() => AccessModule)
+  @JoinColumn({ name: 'moduleId' })
   module: AccessModule;
 
   @Column({ type: 'boolean', default: true })

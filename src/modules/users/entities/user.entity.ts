@@ -3,6 +3,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -11,6 +13,7 @@ import { Organization } from '../../organizations/entities/organization.entity';
 import { OrganizationUser } from '../../organizations/entities/organization-user.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Store } from '../../stores/entities/store.entity';
+import { UserStatus } from '../../master-data/entities/user-status.entity';
 
 @Entity()
 export class User {
@@ -29,6 +32,13 @@ export class User {
 
   @Column({ type: 'boolean', default: false })
   isSuperAdmin: boolean;
+
+  @Column({ type: 'varchar', length: 50, default: 'ACTIVE' })
+  statusId: string;
+
+  @ManyToOne(() => UserStatus)
+  @JoinColumn({ name: 'statusId' })
+  status: UserStatus;
 
   @CreateDateColumn()
   createdAt: Date;

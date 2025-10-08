@@ -7,7 +7,6 @@ import {
 import { Reflector } from '@nestjs/core';
 import { AuditLogService } from '../../modules/audit-log/audit-log.service';
 import { User } from '../../modules/users/entities/user.entity';
-import { AuditAction } from '../enums/audit-action.enum';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AUDIT_KEY } from '../decorators/audit.decorator';
@@ -20,10 +19,10 @@ export class AuditInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const auditAction = this.reflector.getAllAndOverride<AuditAction>(
-      AUDIT_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const auditAction = this.reflector.getAllAndOverride<string>(AUDIT_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (!auditAction) {
       return next.handle();
@@ -40,7 +39,7 @@ export class AuditInterceptor implements NestInterceptor {
         void this.auditLogService.create({
           organizationId: request.user.organizationId,
           userId: request.user.id,
-          action: auditAction,
+          actionId: auditAction,
           targetId: request.params.id ?? data?.id,
           changes: request.body,
         });

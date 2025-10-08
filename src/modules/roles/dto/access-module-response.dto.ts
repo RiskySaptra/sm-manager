@@ -1,11 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AccessModule } from '../../../shared/enums/access-module.enum';
+import { AccessModule } from '../../master-data/entities/access-module.entity';
 
 export class AccessModuleResponseDto {
   @ApiProperty({
-    description: 'The module name',
-    example: 'INVENTORY',
-    enum: AccessModule,
+    description: 'The module details',
+    type: AccessModule,
   })
   module: AccessModule;
 

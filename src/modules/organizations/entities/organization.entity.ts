@@ -8,8 +8,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { PlanType } from '../../../shared/enums/plan-type.enum';
 import { OrganizationUser } from './organization-user.entity';
+import { PlanType } from '../../master-data/entities/plan-type.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Store } from '../../stores/entities/store.entity';
 import { User } from '../../users/entities/user.entity';
@@ -29,11 +29,11 @@ export class Organization {
   @JoinColumn({ name: 'ownerId' })
   owner: User;
 
-  @Column({
-    type: 'enum',
-    enum: PlanType,
-    default: PlanType.FREE,
-  })
+  @Column({ type: 'varchar', length: 50, default: 'FREE' })
+  planTypeId: string;
+
+  @ManyToOne(() => PlanType)
+  @JoinColumn({ name: 'planTypeId' })
   planType: PlanType;
 
   @CreateDateColumn()

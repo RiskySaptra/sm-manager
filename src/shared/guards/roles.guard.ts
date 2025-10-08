@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AccessRight } from '../../modules/roles/entities/access-right.entity';
 import { OrganizationUser } from '../../modules/organizations/entities/organization-user.entity';
 import { User } from '../../modules/users/entities/user.entity';
-import { AccessModule } from '../enums/access-module.enum';
 import { Repository } from 'typeorm';
 import { PERMISSION_KEY } from '../decorators/require-permission.decorator';
 
@@ -20,7 +19,7 @@ export class RolesGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermission = this.reflector.getAllAndOverride<
-      { module: AccessModule; action: 'read' | 'write' } | undefined
+      { module: string; action: 'read' | 'write' } | undefined
     >(PERMISSION_KEY, [context.getHandler(), context.getClass()]);
 
     if (!requiredPermission) {
@@ -47,7 +46,7 @@ export class RolesGuard implements CanActivate {
     const accessRight = await this.accessRightRepository.findOne({
       where: {
         roleId: organizationUser.roleId,
-        module: requiredPermission.module,
+        moduleId: requiredPermission.module,
       },
     });
 

@@ -1,15 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNotEmpty } from 'class-validator';
-import { AccessModule } from '../../../shared/enums/access-module.enum';
+import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 
 export class UpdateAccessRightsDto {
   @ApiProperty({
-    description: 'The module to update',
+    description: 'The ID of the module to update',
     example: 'INVENTORY',
   })
-  @IsEnum(AccessModule)
+  @IsString()
   @IsNotEmpty()
-  module: AccessModule;
+  moduleId: string;
 
   @ApiProperty({
     description: 'Whether the role can read from the module',

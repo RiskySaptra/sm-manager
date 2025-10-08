@@ -6,8 +6,8 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { AuditAction } from '../../../shared/enums/audit-action.enum';
 import { Organization } from '../../organizations/entities/organization.entity';
+import { AuditAction } from '../../master-data/entities/audit-action.entity';
 import { Store } from '../../stores/entities/store.entity';
 import { User } from '../../users/entities/user.entity';
 
@@ -37,10 +37,11 @@ export class AuditLog {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column({
-    type: 'enum',
-    enum: AuditAction,
-  })
+  @Column({ type: 'varchar', length: 50 })
+  actionId: string;
+
+  @ManyToOne(() => AuditAction)
+  @JoinColumn({ name: 'actionId' })
   action: AuditAction;
 
   @Column({ type: 'varchar', length: 100 })

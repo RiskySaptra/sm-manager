@@ -7,7 +7,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { UpdateRoleAccessRightsDto } from './dto/update-role-access-rights.dto';
 import { AccessModuleResponseDto } from './dto/access-module-response.dto';
-import { AccessModule } from '../../shared/enums/access-module.enum';
+import { AccessModule } from '../master-data/entities/access-module.entity';
 
 @Injectable()
 export class RolesService {
@@ -38,7 +38,7 @@ export class RolesService {
   async findOne(id: string): Promise<Role> {
     const role = await this.roleRepository.findOne({
       where: { id },
-      relations: ['accessRights'],
+      relations: ['accessRights', 'accessRights.module'],
     });
     if (!role) {
       throw new NotFoundException(`Role with ID "${id}" not found`);
@@ -101,13 +101,15 @@ export class RolesService {
   async getAccessRightsList(id: string): Promise<AccessModuleResponseDto[]> {
     const role = await this.findOne(id); // findOne now fetches accessRights
 
-    const allModules = Object.values(AccessModule);
+    const accessModuleRepository = this.dataSource.getRepository(AccessModule);
+    const allModules = await accessModuleRepository.find();
+
     const accessRightsMap = new Map(
-      role.accessRights.map((ar) => [ar.module, ar]),
+      role.accessRights.map((ar) => [ar.moduleId, ar]),
     );
 
     return allModules.map((module) => {
-      const existingAccessRight = accessRightsMap.get(module);
+      const existingAccessRight = accessRightsMap.get(module.id);
       if (existingAccessRight) {
         return {
           module: existingAccessRight.module,

@@ -7,6 +7,7 @@ import { OrganizationsModule } from '../modules/organizations/organizations.modu
 import { StoresModule } from '../modules/stores/stores.module';
 import { RolesModule } from '../modules/roles/roles.module';
 import { AuditLogModule } from '../modules/audit-log/audit-log.module';
+import { MasterDataModule } from '../modules/master-data/master-data.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AuditLogModule } from '../modules/audit-log/audit-log.module';
     StoresModule,
     RolesModule,
     AuditLogModule,
+    MasterDataModule,
   ],
 })
 export class AppModule {}

@@ -1,15 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../../app/app.module';
 import { User } from '../../modules/users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from '../../modules/roles/entities/role.entity';
-import { AccessRight } from '../../modules/roles/entities/access-right.entity';
-import { AccessModule } from '../../shared/enums/access-module.enum';
 import { Organization } from '../../modules/organizations/entities/organization.entity';
 import { Store } from '../../modules/stores/entities/store.entity';
 import { OrganizationUser } from '../../modules/organizations/entities/organization-user.entity';
+import seedMasterData from './master-data.seeder';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -19,13 +18,13 @@ async function bootstrap() {
     getRepositoryToken(Organization),
   );
   const roleRepository = app.get<Repository<Role>>(getRepositoryToken(Role));
-  const accessRightRepository = app.get<Repository<AccessRight>>(
-    getRepositoryToken(AccessRight),
-  );
   const storeRepository = app.get<Repository<Store>>(getRepositoryToken(Store));
   const organizationUserRepository = app.get<Repository<OrganizationUser>>(
     getRepositoryToken(OrganizationUser),
   );
+
+  // Seed Master Data
+  await seedMasterData(app.get(DataSource));
 
   const salt = await bcrypt.genSalt();
   const hashedPassword = await bcrypt.hash('password', salt);
@@ -45,111 +44,184 @@ async function bootstrap() {
   }
 
   // Create Organizations
-  const org1 = await organizationRepository.save({
+  let org1 = await organizationRepository.findOneBy({
     name: 'Tech Solutions Inc.',
-    ownerId: superAdmin.id,
   });
+  if (!org1) {
+    org1 = await organizationRepository.save({
+      name: 'Tech Solutions Inc.',
+      ownerId: superAdmin.id,
+    });
+  }
 
-  const org2 = await organizationRepository.save({
+  let org2 = await organizationRepository.findOneBy({
     name: 'Global Retail Co.',
-    ownerId: superAdmin.id,
   });
+  if (!org2) {
+    org2 = await organizationRepository.save({
+      name: 'Global Retail Co.',
+      ownerId: superAdmin.id,
+    });
+  }
 
   // Create Stores
-  const store1Org1 = await storeRepository.save({
-    name: 'Main Branch',
-    organizationId: org1.id,
-    location: 'New York',
-  });
+  let store1Org1 = await storeRepository.findOneBy({ name: 'Main Branch' });
+  if (!store1Org1) {
+    store1Org1 = await storeRepository.save({
+      name: 'Main Branch',
+      organizationId: org1.id,
+      location: 'New York',
+    });
+  }
 
-  const store2Org1 = await storeRepository.save({
+  let store2Org1 = await storeRepository.findOneBy({
     name: 'West Coast Office',
-    organizationId: org1.id,
-    location: 'San Francisco',
   });
+  if (!store2Org1) {
+    store2Org1 = await storeRepository.save({
+      name: 'West Coast Office',
+      organizationId: org1.id,
+      location: 'San Francisco',
+    });
+  }
 
-  const store1Org2 = await storeRepository.save({
-    name: 'Downtown Store',
-    organizationId: org2.id,
-    location: 'London',
-  });
+  let store1Org2 = await storeRepository.findOneBy({ name: 'Downtown Store' });
+  if (!store1Org2) {
+    store1Org2 = await storeRepository.save({
+      name: 'Downtown Store',
+      organizationId: org2.id,
+      location: 'London',
+    });
+  }
 
   // Create Roles
-  const adminRoleOrg1 = await roleRepository.save({
-    name: 'Administrator',
-    organizationId: org1.id,
-  });
+  let adminRoleOrg1 = await roleRepository.findOneBy({ name: 'Administrator' });
+  if (!adminRoleOrg1) {
+    adminRoleOrg1 = await roleRepository.save({
+      name: 'Administrator',
+      organizationId: org1.id,
+    });
+  }
 
-  const managerRoleOrg1 = await roleRepository.save({
-    name: 'Manager',
-    organizationId: org1.id,
-  });
+  let managerRoleOrg1 = await roleRepository.findOneBy({ name: 'Manager' });
+  if (!managerRoleOrg1) {
+    managerRoleOrg1 = await roleRepository.save({
+      name: 'Manager',
+      organizationId: org1.id,
+    });
+  }
 
-  const staffRoleOrg1 = await roleRepository.save({
-    name: 'Staff',
-    organizationId: org1.id,
-  });
+  let staffRoleOrg1 = await roleRepository.findOneBy({ name: 'Staff' });
+  if (!staffRoleOrg1) {
+    staffRoleOrg1 = await roleRepository.save({
+      name: 'Staff',
+      organizationId: org1.id,
+    });
+  }
 
-  const managerRoleOrg2 = await roleRepository.save({
+  let managerRoleOrg2 = await roleRepository.findOneBy({
     name: 'General Manager',
-    organizationId: org2.id,
   });
-
-  // Assign Access Rights
-  await accessRightRepository.save([
-    // Admin Role - Full Access
-    { roleId: adminRoleOrg1.id, module: AccessModule.INVENTORY, canRead: true, canWrite: true, canDelete: true },
-    { roleId: adminRoleOrg1.id, module: AccessModule.SALES, canRead: true, canWrite: true, canDelete: true },
-    { roleId: adminRoleOrg1.id, module: AccessModule.USERS, canRead: true, canWrite: true, canDelete: true },
-    { roleId: adminRoleOrg1.id, module: AccessModule.REPORTS, canRead: true, canWrite: true, canDelete: true },
-    { roleId: adminRoleOrg1.id, module: AccessModule.SETTINGS, canRead: true, canWrite: true, canDelete: true },
-
-    // Manager Role - Limited Access
-    { roleId: managerRoleOrg1.id, module: AccessModule.INVENTORY, canRead: true, canWrite: true, canDelete: false },
-    { roleId: managerRoleOrg1.id, module: AccessModule.SALES, canRead: true, canWrite: true, canDelete: false },
-    { roleId: managerRoleOrg1.id, module: AccessModule.REPORTS, canRead: true, canWrite: false, canDelete: false },
-
-    // Staff Role - Read-Only
-    { roleId: staffRoleOrg1.id, module: AccessModule.INVENTORY, canRead: true, canWrite: false, canDelete: false },
-    { roleId: staffRoleOrg1.id, module: AccessModule.SALES, canRead: true, canWrite: false, canDelete: false },
-
-    // Manager Role Org 2
-    { roleId: managerRoleOrg2.id, module: AccessModule.INVENTORY, canRead: true, canWrite: true, canDelete: true },
-    { roleId: managerRoleOrg2.id, module: AccessModule.SALES, canRead: true, canWrite: true, canDelete: true },
-  ]);
+  if (!managerRoleOrg2) {
+    managerRoleOrg2 = await roleRepository.save({
+      name: 'General Manager',
+      organizationId: org2.id,
+    });
+  }
 
   // Create Users
-  const user1 = await userRepository.save({
+  let user1 = await userRepository.findOneBy({
     email: 'admin@techsolutions.com',
-    passwordHash: hashedPassword,
-    name: 'Alice Admin',
   });
+  if (!user1) {
+    user1 = await userRepository.save({
+      email: 'admin@techsolutions.com',
+      passwordHash: hashedPassword,
+      name: 'Alice Admin',
+    });
+  }
 
-  const user2 = await userRepository.save({
+  let user2 = await userRepository.findOneBy({
     email: 'manager@techsolutions.com',
-    passwordHash: hashedPassword,
-    name: 'Bob Manager',
   });
+  if (!user2) {
+    user2 = await userRepository.save({
+      email: 'manager@techsolutions.com',
+      passwordHash: hashedPassword,
+      name: 'Bob Manager',
+    });
+  }
 
-  const user3 = await userRepository.save({
+  let user3 = await userRepository.findOneBy({
     email: 'staff@techsolutions.com',
-    passwordHash: hashedPassword,
-    name: 'Charlie Staff',
   });
+  if (!user3) {
+    user3 = await userRepository.save({
+      email: 'staff@techsolutions.com',
+      passwordHash: hashedPassword,
+      name: 'Charlie Staff',
+    });
+  }
 
-  const user4 = await userRepository.save({
+  let user4 = await userRepository.findOneBy({
     email: 'manager@globalretail.com',
-    passwordHash: hashedPassword,
-    name: 'Diana Manager',
   });
+  if (!user4) {
+    user4 = await userRepository.save({
+      email: 'manager@globalretail.com',
+      passwordHash: hashedPassword,
+      name: 'Diana Manager',
+    });
+  }
 
   // Assign Users to Organizations
-  await organizationUserRepository.save([
-    { organizationId: org1.id, storeId: store1Org1.id, userId: user1.id, roleId: adminRoleOrg1.id },
-    { organizationId: org1.id, storeId: store1Org1.id, userId: user2.id, roleId: managerRoleOrg1.id },
-    { organizationId: org1.id, storeId: store2Org1.id, userId: user3.id, roleId: staffRoleOrg1.id },
-    { organizationId: org2.id, storeId: store1Org2.id, userId: user4.id, roleId: managerRoleOrg2.id },
-  ]);
+  const orgUser1 = await organizationUserRepository.findOneBy({
+    userId: user1.id,
+  });
+  if (!orgUser1) {
+    await organizationUserRepository.save({
+      organizationId: org1.id,
+      storeId: store1Org1.id,
+      userId: user1.id,
+      roleId: adminRoleOrg1.id,
+    });
+  }
+
+  const orgUser2 = await organizationUserRepository.findOneBy({
+    userId: user2.id,
+  });
+  if (!orgUser2) {
+    await organizationUserRepository.save({
+      organizationId: org1.id,
+      storeId: store1Org1.id,
+      userId: user2.id,
+      roleId: managerRoleOrg1.id,
+    });
+  }
+
+  const orgUser3 = await organizationUserRepository.findOneBy({
+    userId: user3.id,
+  });
+  if (!orgUser3) {
+    await organizationUserRepository.save({
+      organizationId: org1.id,
+      storeId: store2Org1.id,
+      userId: user3.id,
+      roleId: staffRoleOrg1.id,
+    });
+  }
+
+  const orgUser4 = await organizationUserRepository.findOneBy({
+    userId: user4.id,
+  });
+  if (!orgUser4) {
+    await organizationUserRepository.save({
+      organizationId: org2.id,
+      storeId: store1Org2.id,
+      userId: user4.id,
+      roleId: managerRoleOrg2.id,
+    });
+  }
 
   await app.close();
 }
