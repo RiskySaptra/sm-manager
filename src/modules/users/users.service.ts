@@ -18,6 +18,16 @@ export class UsersService {
     const organizationId =
       user.organizationId ?? user.organizationUsers?.[0]?.organizationId;
 
+    const currentUser = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.status', 'status')
+      .where('user.id = :id', { id: user.id })
+      .getOne();
+
+    if (!currentUser) {
+      throw new NotFoundException(`User with ID "${user.id}" not found`);
+    }
+
     if (organizationId) {
       const organizationUser = await this.organizationUserRepository.findOne({
         where: {
@@ -27,13 +37,13 @@ export class UsersService {
         relations: ['organization', 'store', 'role'],
       });
       if (organizationUser) {
-        user.organization = organizationUser.organization;
-        user.store = organizationUser.store;
-        user.role = organizationUser.role;
+        currentUser.organization = organizationUser.organization;
+        currentUser.store = organizationUser.store;
+        currentUser.role = organizationUser.role;
       }
     }
-    delete user.organizationUsers;
-    return user;
+    delete currentUser.organizationUsers;
+    return currentUser;
   }
 
   async findAll(): Promise<User[]> {

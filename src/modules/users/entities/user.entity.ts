@@ -34,6 +34,7 @@ export class User {
   isSuperAdmin: boolean;
 
   @Column({ type: 'varchar', length: 50, default: 'ACTIVE' })
+  @Exclude({ toPlainOnly: true })
   statusId: string;
 
   @ManyToOne(() => UserStatus)

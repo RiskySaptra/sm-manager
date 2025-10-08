@@ -4,7 +4,7 @@ import { IsNotEmpty, IsUUID } from 'class-validator';
 export class ChangeOwnerDto {
   @ApiProperty({
     description: 'The ID of the new owner',
-    example: '00000000-0000-0000-0000-000000000002',
+    example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
   })
   @IsUUID()
   @IsNotEmpty()

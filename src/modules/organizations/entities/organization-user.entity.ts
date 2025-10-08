@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Organization } from './organization.entity';
-import { UserStatus } from '../../master-data/entities/user-status.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Store } from '../../stores/entities/store.entity';
 import { User } from '../../users/entities/user.entity';
@@ -49,11 +48,7 @@ export class OrganizationUser {
   role: Role;
 
   @Column({ type: 'varchar', length: 50, default: 'ACTIVE' })
-  statusId: string;
-
-  @ManyToOne(() => UserStatus)
-  @JoinColumn({ name: 'statusId' })
-  status: UserStatus;
+  status: string;
 
   @Column({ type: 'timestamp', nullable: true })
   lastLogin: Date;

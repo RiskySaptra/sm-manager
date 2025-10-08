@@ -8,7 +8,7 @@ export class UpdateAccessRightsDto {
   })
   @IsString()
   @IsNotEmpty()
-  moduleId: string;
+  module: string;
 
   @ApiProperty({
     description: 'Whether the role can read from the module',
@@ -20,7 +20,7 @@ export class UpdateAccessRightsDto {
 
   @ApiProperty({
     description: 'Whether the role can write to the module',
-    example: true,
+    example: false,
   })
   @IsBoolean()
   @IsNotEmpty()
@@ -28,7 +28,7 @@ export class UpdateAccessRightsDto {
 
   @ApiProperty({
     description: 'Whether the role can delete from the module',
-    example: true,
+    example: false,
   })
   @IsBoolean()
   @IsNotEmpty()

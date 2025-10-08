@@ -6,8 +6,8 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { UpdateRoleAccessRightsDto } from './dto/update-role-access-rights.dto';
-import { AccessModuleResponseDto } from './dto/access-module-response.dto';
 import { AccessModule } from '../master-data/entities/access-module.entity';
+import { AccessRightDto } from './dto/access-right.dto';
 
 @Injectable()
 export class RolesService {
@@ -77,8 +77,11 @@ export class RolesService {
       const newAccessRights = updateRoleAccessRightsDto.accessRights.map(
         (accessRightDto) => {
           return this.accessRightRepository.create({
-            ...accessRightDto,
             roleId: role.id,
+            moduleId: accessRightDto.module,
+            canRead: accessRightDto.canRead,
+            canWrite: accessRightDto.canWrite,
+            canDelete: accessRightDto.canDelete,
           });
         },
       );
@@ -98,7 +101,7 @@ export class RolesService {
     }
   }
 
-  async getAccessRightsList(id: string): Promise<AccessModuleResponseDto[]> {
+  async getAccessRightsList(id: string): Promise<AccessRightDto[]> {
     const role = await this.findOne(id); // findOne now fetches accessRights
 
     const accessModuleRepository = this.dataSource.getRepository(AccessModule);
@@ -112,14 +115,14 @@ export class RolesService {
       const existingAccessRight = accessRightsMap.get(module.id);
       if (existingAccessRight) {
         return {
-          module: existingAccessRight.module,
+          module: existingAccessRight.module.id,
           canRead: existingAccessRight.canRead,
           canWrite: existingAccessRight.canWrite,
           canDelete: existingAccessRight.canDelete,
         };
       } else {
         return {
-          module,
+          module: module.id,
           canRead: true,
           canWrite: false,
           canDelete: false,

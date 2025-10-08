@@ -31,9 +31,8 @@ export class CreateStoreDto {
   @ApiProperty({
     description: 'The ID of the organization to create the store in',
     example: '00000000-0000-0000-0000-000000000001',
-    required: false,
   })
-  @IsOptional()
   @IsUUID()
-  organizationId?: string;
+  @IsNotEmpty()
+  organizationId: string;
 }

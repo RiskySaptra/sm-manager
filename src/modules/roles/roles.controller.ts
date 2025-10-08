@@ -7,7 +7,6 @@ import {
   Patch,
   Post,
   UseGuards,
-  ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -25,7 +24,7 @@ import { UpdateRoleAccessRightsDto } from './dto/update-role-access-rights.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RolesService } from './roles.service';
 import { Role } from './entities/role.entity';
-import { AccessModuleResponseDto } from './dto/access-module-response.dto';
+import { AccessRightDto } from './dto/access-right.dto';
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -43,7 +42,7 @@ export class RolesController {
     type: Role,
   })
   create(
-    @Body(ValidationPipe) createRoleDto: CreateRoleDto,
+    @Body() createRoleDto: CreateRoleDto,
     @GetUser() user: User,
   ): Promise<Role> {
     return this.rolesService.create(createRoleDto, user.organizationId!);
@@ -86,7 +85,7 @@ export class RolesController {
   })
   update(
     @Param('id') id: string,
-    @Body(ValidationPipe) updateRoleDto: UpdateRoleDto,
+    @Body() updateRoleDto: UpdateRoleDto,
   ): Promise<Role> {
     return this.rolesService.update(id, updateRoleDto);
   }
@@ -114,7 +113,7 @@ export class RolesController {
   })
   updateAccessRights(
     @Param('id') id: string,
-    @Body(ValidationPipe)
+    @Body()
     updateRoleAccessRightsDto: UpdateRoleAccessRightsDto,
   ): Promise<Role> {
     return this.rolesService.updateAccessRights(id, updateRoleAccessRightsDto);
@@ -127,11 +126,9 @@ export class RolesController {
   @ApiResponse({
     status: 200,
     description: 'Return the access rights list for the role.',
-    type: [AccessModuleResponseDto],
+    type: [AccessRightDto],
   })
-  getAccessRightsList(
-    @Param('id') id: string,
-  ): Promise<AccessModuleResponseDto[]> {
+  getAccessRightsList(@Param('id') id: string): Promise<AccessRightDto[]> {
     return this.rolesService.getAccessRightsList(id);
   }
 }

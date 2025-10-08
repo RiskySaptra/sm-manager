@@ -10,14 +10,14 @@ import {
 export class InviteUserDto {
   @ApiProperty({
     description: 'The email of the user to invite',
-    example: 'janedoe@example.com',
+    example: 'new.user@example.com',
   })
   @IsEmail()
   email: string;
 
   @ApiProperty({
     description: 'The ID of the role to assign to the user',
-    example: '00000000-0000-0000-0000-000000000003',
+    example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
   })
   @IsString()
   @IsNotEmpty()
@@ -25,8 +25,7 @@ export class InviteUserDto {
 
   @ApiProperty({
     description: 'The ID of the store to assign to the user',
-    example: '00000000-0000-0000-0000-000000000004',
-    required: false,
+    example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
   })
   @IsOptional()
   @IsUUID()
