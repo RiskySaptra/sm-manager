@@ -4,7 +4,7 @@ import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 export class CreateStoreDto {
   @ApiProperty({
     description: 'The name of the store',
-    example: 'Main Street Store',
+    example: 'Gadget Store',
   })
   @IsString()
   @IsNotEmpty()
@@ -12,7 +12,7 @@ export class CreateStoreDto {
 
   @ApiProperty({
     description: 'The location of the store',
-    example: '123 Main St, Anytown, USA',
+    example: '123 Electric Avenue, Tech City',
     required: false,
   })
   @IsOptional()
@@ -21,16 +21,15 @@ export class CreateStoreDto {
 
   @ApiProperty({
     description: 'The timezone of the store',
-    example: 'America/New_York',
+    example: 'Asia/Jakarta',
     required: false,
   })
   @IsOptional()
   @IsString()
   timezone?: string;
-
   @ApiProperty({
     description: 'The ID of the organization to create the store in',
-    example: '00000000-0000-0000-0000-000000000001',
+    example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
   })
   @IsUUID()
   @IsNotEmpty()

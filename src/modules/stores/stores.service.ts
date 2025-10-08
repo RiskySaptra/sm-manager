@@ -12,13 +12,9 @@ export class StoresService {
     private readonly storeRepository: Repository<Store>,
   ) {}
 
-  async create(
-    createStoreDto: CreateStoreDto,
-    organizationId: string,
-  ): Promise<Store> {
+  async create(createStoreDto: CreateStoreDto): Promise<Store> {
     const store = this.storeRepository.create({
       ...createStoreDto,
-      organizationId: createStoreDto.organizationId ?? organizationId,
     });
 
     return this.storeRepository.save(store);

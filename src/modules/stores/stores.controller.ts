@@ -16,9 +16,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { GetUser } from '../auth/decorators/get-user.decorator';
 import { Store } from './entities/store.entity';
-import { User } from '../users/entities/user.entity';
 import { SuperAdminGuard } from '../../shared/guards/super-admin.guard';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
@@ -31,6 +29,7 @@ export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
   @Post()
+  @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new store' })
   @ApiResponse({
@@ -38,11 +37,8 @@ export class StoresController {
     description: 'The store has been successfully created.',
     type: Store,
   })
-  create(
-    @Body(ValidationPipe) createStoreDto: CreateStoreDto,
-    @GetUser() user: User,
-  ): Promise<Store> {
-    return this.storesService.create(createStoreDto, user.organizationId!);
+  create(@Body(ValidationPipe) createStoreDto: CreateStoreDto): Promise<Store> {
+    return this.storesService.create(createStoreDto);
   }
 
   @Get()
