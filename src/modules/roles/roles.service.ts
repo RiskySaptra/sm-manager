@@ -2,10 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AccessRight } from './entities/access-right.entity';
 import { Role } from './entities/role.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateAccessRightsDto } from './dto/update-access-rights.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { UpdateRoleAccessRightsDto } from './dto/update-role-access-rights.dto';
+import { AccessModuleResponseDto } from './dto/access-module-response.dto';
+import { AccessModule } from '../../shared/enums/access-module.enum';
 
 @Injectable()
 export class RolesService {
@@ -14,6 +16,7 @@ export class RolesService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(AccessRight)
     private readonly accessRightRepository: Repository<AccessRight>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(
@@ -33,7 +36,10 @@ export class RolesService {
   }
 
   async findOne(id: string): Promise<Role> {
-    const role = await this.roleRepository.findOneBy({ id });
+    const role = await this.roleRepository.findOne({
+      where: { id },
+      relations: ['accessRights'],
+    });
     if (!role) {
       throw new NotFoundException(`Role with ID "${id}" not found`);
     }
@@ -55,19 +61,68 @@ export class RolesService {
 
   async updateAccessRights(
     id: string,
-    updateAccessRightsDto: UpdateAccessRightsDto,
-  ): Promise<AccessRight> {
+    updateRoleAccessRightsDto: UpdateRoleAccessRightsDto,
+  ): Promise<Role> {
     const role = await this.findOne(id);
-    let accessRight = await this.accessRightRepository.findOne({
-      where: { roleId: role.id, module: updateAccessRightsDto.module },
-    });
-    if (!accessRight) {
-      accessRight = this.accessRightRepository.create({
-        roleId: role.id,
-        module: updateAccessRightsDto.module,
-      });
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Remove old access rights
+      await queryRunner.manager.delete(AccessRight, { roleId: role.id });
+
+      // Create new access rights
+      const newAccessRights = updateRoleAccessRightsDto.accessRights.map(
+        (accessRightDto) => {
+          return this.accessRightRepository.create({
+            ...accessRightDto,
+            roleId: role.id,
+          });
+        },
+      );
+
+      if (newAccessRights.length > 0) {
+        await queryRunner.manager.save(newAccessRights);
+      }
+
+      await queryRunner.commitTransaction();
+
+      return this.findOne(id); // Refetch to get updated relations
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-    Object.assign(accessRight, updateAccessRightsDto);
-    return this.accessRightRepository.save(accessRight);
+  }
+
+  async getAccessRightsList(id: string): Promise<AccessModuleResponseDto[]> {
+    const role = await this.findOne(id); // findOne now fetches accessRights
+
+    const allModules = Object.values(AccessModule);
+    const accessRightsMap = new Map(
+      role.accessRights.map((ar) => [ar.module, ar]),
+    );
+
+    return allModules.map((module) => {
+      const existingAccessRight = accessRightsMap.get(module);
+      if (existingAccessRight) {
+        return {
+          module: existingAccessRight.module,
+          canRead: existingAccessRight.canRead,
+          canWrite: existingAccessRight.canWrite,
+          canDelete: existingAccessRight.canDelete,
+        };
+      } else {
+        return {
+          module,
+          canRead: true,
+          canWrite: false,
+          canDelete: false,
+        };
+      }
+    });
   }
 }

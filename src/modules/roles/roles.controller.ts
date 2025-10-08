@@ -17,15 +17,15 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorators/get-user.decorator';
-import { AccessRight } from './entities/access-right.entity';
-import { Role } from './entities/role.entity';
 import { User } from '../users/entities/user.entity';
 import { SuperAdminGuard } from '../../shared/guards/super-admin.guard';
 import { TenancyGuard } from '../../shared/guards/tenancy.guard';
 import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateAccessRightsDto } from './dto/update-access-rights.dto';
+import { UpdateRoleAccessRightsDto } from './dto/update-role-access-rights.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { RolesService } from './roles.service';
+import { Role } from './entities/role.entity';
+import { AccessModuleResponseDto } from './dto/access-module-response.dto';
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -110,12 +110,28 @@ export class RolesController {
   @ApiResponse({
     status: 201,
     description: 'The access rights have been successfully updated.',
-    type: AccessRight,
+    type: Role,
   })
   updateAccessRights(
     @Param('id') id: string,
-    @Body(ValidationPipe) updateAccessRightsDto: UpdateAccessRightsDto,
-  ): Promise<AccessRight> {
-    return this.rolesService.updateAccessRights(id, updateAccessRightsDto);
+    @Body(ValidationPipe)
+    updateRoleAccessRightsDto: UpdateRoleAccessRightsDto,
+  ): Promise<Role> {
+    return this.rolesService.updateAccessRights(id, updateRoleAccessRightsDto);
+  }
+
+  @Get(':id/access-rights-list')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get the access rights list for a role' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the access rights list for the role.',
+    type: [AccessModuleResponseDto],
+  })
+  getAccessRightsList(
+    @Param('id') id: string,
+  ): Promise<AccessModuleResponseDto[]> {
+    return this.rolesService.getAccessRightsList(id);
   }
 }
