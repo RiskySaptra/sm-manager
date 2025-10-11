@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -35,4 +36,7 @@ export class AccessRight {
 
   @Column({ type: 'boolean', default: false })
   canDelete: boolean;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }

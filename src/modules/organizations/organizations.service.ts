@@ -101,7 +101,7 @@ export class OrganizationsService {
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.organizationRepository.delete(id);
+    const result = await this.organizationRepository.softDelete(id);
     if (result.affected === 0) {
       throw new NotFoundException(`Organization with ID "${id}" not found`);
     }
