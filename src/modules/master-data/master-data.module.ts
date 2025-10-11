@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
-import { MasterDataController } from './master-data.controller.js';
-import { MasterDataService } from './master-data.service.js';
-import { AccessModule } from './entities/access-module.entity.js';
-import { AuditAction } from './entities/audit-action.entity.js';
-import { PlanType } from './entities/plan-type.entity.js';
-import { UserStatus } from './entities/user-status.entity.js';
+import { MasterDataController } from './master-data.controller';
+import { MasterDataService } from './master-data.service';
+import { AccessModule } from './entities/access-module.entity';
+import { AuditAction } from './entities/audit-action.entity';
+import { PlanType } from './entities/plan-type.entity';
+import { UserStatus } from './entities/user-status.entity';
 
 @Module({
   imports: [

@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { MasterDataService } from './master-data.service.js';
+import { MasterDataService } from './master-data.service';
 import { AccessModule } from './entities/access-module.entity';
 import { AuditAction } from './entities/audit-action.entity';
 import { PlanType } from './entities/plan-type.entity';
