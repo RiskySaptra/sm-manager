@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { OrganizationUser } from './entities/organization-user.entity';
 import { Organization } from './entities/organization.entity';
 import { User } from '../users/entities/user.entity';
@@ -61,12 +62,23 @@ export class OrganizationsService {
       );
     }
 
-    const invitedUser = await this.userRepository.findOneBy({
+    let invitedUser = await this.userRepository.findOneBy({
       email: inviteUserDto.email,
     });
 
     if (!invitedUser) {
-      throw new NotFoundException('User to invite not found');
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(
+        Math.random().toString(36).slice(-8),
+        salt,
+      );
+
+      const newUser = this.userRepository.create({
+        email: inviteUserDto.email,
+        passwordHash: hashedPassword,
+        name: inviteUserDto.email.split('@')[0],
+      });
+      invitedUser = await this.userRepository.save(newUser);
     }
 
     const organizationUser = this.organizationUserRepository.create({
