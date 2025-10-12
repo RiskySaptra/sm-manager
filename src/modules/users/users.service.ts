@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrganizationUser } from '../organizations/entities/organization-user.entity';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AssignUserDto } from './dto/assign-user.dto';
+import { UserDetailsResponseDto } from './dto/user-details.response.dto';
 
 @Injectable()
 export class UsersService {
@@ -51,16 +56,48 @@ export class UsersService {
     return this.userRepository.find();
   }
 
-  async findOne(id: string): Promise<User> {
+  async findOne(id: string): Promise<UserDetailsResponseDto> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: [
+        'organizationUsers',
+        'organizationUsers.store',
+        'organizationUsers.role',
+      ],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+
+    const response: UserDetailsResponseDto = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      isSuperAdmin: user.isSuperAdmin,
+      statusId: user.statusId,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      deletedAt: user.deletedAt,
+    };
+
+    if (user.organizationUsers && user.organizationUsers.length > 0) {
+      response.organizationId = user.organizationUsers[0].organizationId;
+      response.stores = user.organizationUsers.map((ou) => ({
+        id: ou.store.id,
+        name: ou.store.name,
+        role: ou.role.name,
+      }));
+    }
+
+    return response;
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
-    return user;
-  }
-
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    const user = await this.findOne(id);
     Object.assign(user, updateUserDto);
     return this.userRepository.save(user);
   }
@@ -74,6 +111,16 @@ export class UsersService {
   async assignUser(assignUserDto: AssignUserDto): Promise<OrganizationUser> {
     const { userId, organizationId, storeId, roleId } = assignUserDto;
 
+    const existingAssignment = await this.organizationUserRepository.findOne({
+      where: { userId, storeId },
+    });
+
+    if (existingAssignment) {
+      throw new ConflictException(
+        `User with ID "${userId}" is already assigned to store with ID "${storeId}"`,
+      );
+    }
+
     const organizationUser = this.organizationUserRepository.create({
       userId,
       organizationId,
@@ -82,5 +129,17 @@ export class UsersService {
     });
 
     return this.organizationUserRepository.save(organizationUser);
+  }
+  async removeStoreFromUser(userId: string, storeId: string): Promise<void> {
+    const result = await this.organizationUserRepository.softDelete({
+      userId,
+      storeId,
+    });
+
+    if (result.affected === 0) {
+      throw new NotFoundException(
+        `User with ID "${userId}" is not assigned to store with ID "${storeId}"`,
+      );
+    }
   }
 }

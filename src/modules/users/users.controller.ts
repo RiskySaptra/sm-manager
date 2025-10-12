@@ -24,6 +24,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 import { AssignUserDto } from './dto/assign-user.dto';
 import { OrganizationUser } from '../organizations/entities/organization-user.entity';
+import { UserDetailsResponseDto } from './dto/user-details.response.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -63,9 +64,9 @@ export class UsersController {
   @ApiResponse({
     status: 200,
     description: 'Return the user.',
-    type: User,
+    type: UserDetailsResponseDto,
   })
-  findOne(@Param('id') id: string): Promise<User> {
+  findOne(@Param('id') id: string): Promise<UserDetailsResponseDto> {
     return this.usersService.findOne(id);
   }
 
@@ -123,5 +124,19 @@ export class UsersController {
     @Body(ValidationPipe) assignUserDto: AssignUserDto,
   ): Promise<OrganizationUser> {
     return this.usersService.assignUser(assignUserDto);
+  }
+  @Delete(':userId/store/:storeId')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remove a store from a user' })
+  @ApiResponse({
+    status: 200,
+    description: 'The store has been successfully removed from the user.',
+  })
+  removeStoreFromUser(
+    @Param('userId') userId: string,
+    @Param('storeId') storeId: string,
+  ): Promise<void> {
+    return this.usersService.removeStoreFromUser(userId, storeId);
   }
 }

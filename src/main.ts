@@ -2,6 +2,8 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app/app.module';
+import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
+import { TransformResponseInterceptor } from './shared/interceptors/transform-response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,7 +21,13 @@ async function bootstrap() {
   );
 
   // Global Interceptors
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(
+    new TransformResponseInterceptor(),
+    new ClassSerializerInterceptor(app.get(Reflector)),
+  );
+
+  // Global Filters
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // Global Prefix
   app.setGlobalPrefix('api/v1');

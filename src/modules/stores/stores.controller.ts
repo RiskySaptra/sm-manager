@@ -20,6 +20,7 @@ import { Store } from './entities/store.entity';
 import { SuperAdminGuard } from '../../shared/guards/super-admin.guard';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { StoreDetailsResponseDto } from './dto/store-details-response.dto';
+import { StoreDropdownResponseDto } from './dto/store-dropdown-response.dto';
 import { UpdateStoreDto } from './dto/update-store.dto';
 import { StoresService } from './stores.service';
 
@@ -62,12 +63,17 @@ export class StoresController {
   @ApiResponse({
     status: 200,
     description: 'Return all stores for the organization.',
-    type: [Store],
+    type: [StoreDropdownResponseDto],
   })
-  findAllByOrganization(
+  async findAllByOrganization(
     @Param('organizationId') organizationId: string,
-  ): Promise<Store[]> {
-    return this.storesService.findAllByOrganization(organizationId);
+  ): Promise<StoreDropdownResponseDto[]> {
+    const stores =
+      await this.storesService.findAllByOrganization(organizationId);
+    return stores.map((store) => ({
+      id: store.id,
+      label: store.name,
+    }));
   }
 
   @Get(':id')
