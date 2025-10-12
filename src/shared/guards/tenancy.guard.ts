@@ -10,6 +10,10 @@ export class TenancyGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<{ user: User }>();
     const user = request.user;
 
+    if (user && user.isSuperAdmin) {
+      return true;
+    }
+
     if (!user || !user.organizationId) {
       return false;
     }
