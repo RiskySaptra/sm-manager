@@ -19,7 +19,7 @@ export class RolesGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermission = this.reflector.getAllAndOverride<
-      { module: string; action: 'read' | 'write' } | undefined
+      { module: string; action: 'read' | 'write' | 'delete' } | undefined
     >(PERMISSION_KEY, [context.getHandler(), context.getClass()]);
 
     if (!requiredPermission) {
@@ -54,8 +54,15 @@ export class RolesGuard implements CanActivate {
       return false;
     }
 
-    return accessRight[
-      requiredPermission.action === 'read' ? 'canRead' : 'canWrite'
-    ];
+    if (requiredPermission.action === 'read') {
+      return accessRight.canRead;
+    }
+    if (requiredPermission.action === 'write') {
+      return accessRight.canWrite;
+    }
+    if (requiredPermission.action === 'delete') {
+      return accessRight.canDelete;
+    }
+    return false;
   }
 }
