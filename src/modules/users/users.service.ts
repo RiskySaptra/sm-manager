@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AssignUserDto } from './dto/assign-user.dto';
 import { UserDetailsResponseDto } from './dto/user-details.response.dto';
+import { UserStoreDto } from './dto/user-store.dto';
 
 @Injectable()
 export class UsersService {
@@ -57,14 +58,13 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<UserDetailsResponseDto> {
-    const user = await this.userRepository.findOne({
-      where: { id },
-      relations: [
-        'organizationUsers',
-        'organizationUsers.store',
-        'organizationUsers.role',
-      ],
-    });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.organizationUsers', 'organizationUsers')
+      .leftJoinAndSelect('organizationUsers.store', 'store')
+      .leftJoinAndSelect('organizationUsers.role', 'role')
+      .where('user.id = :id', { id })
+      .getOne();
 
     if (!user) {
       throw new NotFoundException(`User with ID "${id}" not found`);
@@ -83,11 +83,16 @@ export class UsersService {
 
     if (user.organizationUsers && user.organizationUsers.length > 0) {
       response.organizationId = user.organizationUsers[0].organizationId;
-      response.stores = user.organizationUsers.map((ou) => ({
-        id: ou.store.id,
-        name: ou.store.name,
-        role: ou.role.name,
-      }));
+      response.stores = user.organizationUsers.reduce((acc, ou) => {
+        if (ou.store && ou.role) {
+          acc.push({
+            id: ou.store.id,
+            name: ou.store.name,
+            role: ou.role.name,
+          });
+        }
+        return acc;
+      }, [] as UserStoreDto[]);
     }
 
     return response;
