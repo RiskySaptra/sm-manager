@@ -25,6 +25,10 @@ export class StoresService {
     return this.storeRepository.find({ relations: ['organization'] });
   }
 
+  async findAllByOrganization(organizationId: string): Promise<Store[]> {
+    return this.storeRepository.find({ where: { organizationId } });
+  }
+
   async findOne(id: string): Promise<Store> {
     const store = await this.storeRepository.findOne({
       where: { id },

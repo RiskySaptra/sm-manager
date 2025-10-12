@@ -4,6 +4,7 @@ import { OrganizationUser } from '../organizations/entities/organization-user.en
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AssignUserDto } from './dto/assign-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -69,5 +70,17 @@ export class UsersService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
+  }
+  async assignUser(assignUserDto: AssignUserDto): Promise<OrganizationUser> {
+    const { userId, organizationId, storeId, roleId } = assignUserDto;
+
+    const organizationUser = this.organizationUserRepository.create({
+      userId,
+      organizationId,
+      storeId,
+      roleId,
+    });
+
+    return this.organizationUserRepository.save(organizationUser);
   }
 }

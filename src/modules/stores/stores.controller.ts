@@ -55,6 +55,21 @@ export class StoresController {
     return this.storesService.findAll();
   }
 
+  @Get('/by-organization/:organizationId')
+  @UseGuards(SuperAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all stores by organization ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return all stores for the organization.',
+    type: [Store],
+  })
+  findAllByOrganization(
+    @Param('organizationId') organizationId: string,
+  ): Promise<Store[]> {
+    return this.storesService.findAllByOrganization(organizationId);
+  }
+
   @Get(':id')
   @UseGuards(SuperAdminGuard)
   @ApiBearerAuth()
